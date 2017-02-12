@@ -4,7 +4,7 @@ const getMimeType = require('../mime-type');
 
 const serveStaticAssets = (req, res) => {
   let filePath = './assets' + req.url;
-  if (filePath == './assets/') {
+  if (req.url === '/editor') {
     filePath = './assets/index.html';
   }
 

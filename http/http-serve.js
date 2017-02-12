@@ -2,6 +2,7 @@ const http = require('http');
 const serveStaticAssets = require('./middleware/serve-static-assets');
 const handleRaftState = require('./middleware/handle-raft-state');
 const bodyParser = require('./middleware/body-parser');
+const redirectRoot = require('./middleware/redirect-root');
 const debug = require('../lib/debug').createLogger('http', 'magenta');
 const config = require('../raft/config');
 
@@ -11,6 +12,7 @@ module.exports = (raft, port, initialText) => {
   const middleware = [
     bodyParser,
     handleRaftState(initialText),
+    redirectRoot,
     serveStaticAssets
   ];
 
