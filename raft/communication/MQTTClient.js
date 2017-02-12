@@ -27,7 +27,6 @@ class MQTTClient extends EventEmitter {
     this.dispose = this.dispose.bind(this);
     this.client.on('connect', this._onConnect);
     this.client.on('message', this._onMessage);
-    this.client.subscribe(`rpc/${clientId}`);
   }
 
   send(clientId, message) {

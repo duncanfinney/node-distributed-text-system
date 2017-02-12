@@ -31,9 +31,6 @@ module.exports = (raft, port, initialText) => {
     debug.log('server listening on', server.address().address, server.address().port);
   });
 
-  // const PORT = parseInt(process.argv[3], 10);
-  // findOpenPort(PORT || 8000)
-  //   .then(port => server.listen(port));
   server.listen(port);
   return server;
 };

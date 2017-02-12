@@ -39,7 +39,7 @@ describe('Raft', () => {
       //assert
       assert.equal(node1.state.state, 'follower', 'node should become a follower');
 
-    })
+    });
 
     it('1. should return false if term < currentTerm', async() => {
 
@@ -428,7 +428,7 @@ describe('Raft', () => {
 
   });
 
-  describe('#handleAppendEntriesReply', () => {
+  describe('#_handleAppendEntriesReply', () => {
 
     it('leader should step down if behind', async() => {
       //arrange
@@ -626,6 +626,7 @@ function getTestMqttClient() {
   conn.getNextMessage = async type => {
     const idx = _.findIndex(replies, { type });
     if (idx !== -1) {
+      console.log("pulling");
       return _.pullAt(replies, idx)[0];
     }
 

@@ -1,1 +1,1 @@
-This is the information that will be showed on the server during first boot.
+Initial text content.

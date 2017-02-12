@@ -78,7 +78,7 @@ class Raft extends EventEmitter {
         break;
 
       case RaftCommands.AppendEntriesReply:
-        this.handleAppendEntriesReply(message);
+        this._handleAppendEntriesReply(message);
         break;
 
       case RaftCommands.RequestVote:
@@ -95,7 +95,7 @@ class Raft extends EventEmitter {
 
     }
     this._resetElectionTimer();
-    this.advanceCommitIndex();
+    this._advanceCommitIndex();
   }
 
   handleRequestVote(request) {
@@ -175,7 +175,7 @@ class Raft extends EventEmitter {
       return !state.log[index] || state.log[index].term !== entry.term;
     });
     const conflictedAt = firstConflict && firstConflict.index || -1;
-    if (conflictedAt > 0) {
+    if (conflictedAt >= 0) {
       state.log = state.log.slice(0, conflictedAt);
     }
 
@@ -200,6 +200,20 @@ class Raft extends EventEmitter {
 
   append(data, cb) {
     const { state } = this;
+
+    //first hook up the callback if supplied
+    if (cb) {
+      const idx = state.log.length - 1;
+      const commitChanged = (newIdx) => {
+        if (newIdx >= idx) {
+          this.removeListener('commitIndexChanged', commitChanged);
+          cb();
+        }
+      };
+      this.on('commitIndexChanged', commitChanged);
+    }
+
+    //forward the request to the leader if we are not the leader
     if (state.state !== 'leader') {
       debug.log('forwarding append to leader', data);
       this.client.send(state.lastKnownLeaderId, {
@@ -208,23 +222,16 @@ class Raft extends EventEmitter {
       });
       return;
     }
+
+    //we are leader append and commit
     debug.log('append', data);
     state.log.push({
       index: state.log.length,
       term: state.term,
       data
     });
-    const idx = state.log.length - 1;
-    if (cb) {
-      //TODO: clean up handlers
-      this.on('commitIndexChanged', newIdx => {
-        if (newIdx >= idx) {
-          cb();
-        }
-      });
-    }
     this._sendAppendEntries();
-    return idx;
+    this._advanceCommitIndex();
   }
 
   _termAt(index) {
@@ -278,7 +285,7 @@ class Raft extends EventEmitter {
     }
 
     if (state.state !== 'candidate') {
-      //already been promoted to leader
+      //already been promoted to leader or lost election
       return;
     }
 
@@ -360,7 +367,7 @@ class Raft extends EventEmitter {
     });
   }
 
-  handleAppendEntriesReply(reply) {
+  _handleAppendEntriesReply(reply) {
     const { state } = this;
     if (state.term < reply.term) {
       this._stepDown(reply.term);
@@ -384,7 +391,7 @@ class Raft extends EventEmitter {
     }
   }
 
-  advanceCommitIndex() {
+  _advanceCommitIndex() {
     const { state } = this;
     if (state.state !== 'leader') {
       return;

@@ -6,13 +6,12 @@ const handleGetState = initialText => async(req, res) => {
     return;
   }
 
+  req.handled = true;
+
   switch (req.method) {
     case 'POST': {
       const { text } = req.body;
-      req.raft.append({ type: 'SET_TEXT', text }, () => {
-        res.end();
-      });
-      req.handled = true;
+      req.raft.append({ type: 'SET_TEXT', text }, () => res.end());
       return;
     }
 
@@ -25,10 +24,12 @@ const handleGetState = initialText => async(req, res) => {
       });
 
       const sendState = () => res.write(`data: ${deriveText(req.raft, initialText)}\n\n`);
+
       req.raft.on('commitIndexChanged', sendState);
-      req.socket.on('close', () => req.raft.removeListener('commitIndexChanged', sendState))
+      req.socket.on('close', () => req.raft.removeListener('commitIndexChanged', sendState));
+
       sendState();
-      req.handled = true;
+      return;
 
     }
   }
