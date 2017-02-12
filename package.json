@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "test": "nyc mocha",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls"
+  },
+  "dependencies": {
+    "mqtt": "^2.3.1"
+  },
+  "optionalDependencies": {
+    "blessed": "^0.1.81"
+  },
+  "devDependencies": {
+    "bluebird": "^3.4.7",
+    "chai": "^3.5.0",
+    "coveralls": "^2.11.16",
+    "lodash": "^4.17.4",
+    "mocha": "^3.2.0",
+    "nyc": "^10.1.2"
+  },
+  "license": "MIT"
+}

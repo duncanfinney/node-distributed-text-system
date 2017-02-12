@@ -1,0 +1,86 @@
+<html>
+<head>
+  <script>
+    (function () {
+      'use strict';
+
+      function onReady() {
+        //hook up event source
+        var source = new EventSource('/api/text');
+        source.addEventListener('message', function (e) {
+          var textArea = document.getElementById('theTextArea');
+          if (textArea.value !== e.data) {
+            textArea.value = e.data;
+          }
+        }, false);
+
+        function setStatus(status) {
+          var statusBox = document.getElementById('statusText');
+          statusBox.textContent = status;
+        }
+
+        source.onopen = function() {
+          setStatus('Online');
+          document.getElementById('theTextArea').disabled = false;
+        }
+
+        source.onerror = function() {
+          setStatus('Offline');
+          document.getElementById('theTextArea').disabled = true;
+        }
+
+        //hook up the textbox event
+        let lastValue = null;
+        document.getElementById('theTextArea').onkeyup = debounce(function (e) {
+          var editedText = e.target.value;
+          if (lastValue !== editedText) {
+            lastValue = editedText;
+
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("POST", "/api/text");
+            xmlHttp.setRequestHeader("Content-Type", "application/json");
+            xmlHttp.send(JSON.stringify({ text: editedText }));
+            //cancel the already in progress req if there is one
+            if (this.xmlHttp && this.xmlHttp.readyState !== 4) {
+              this.xmlHttp.abort();
+            }
+            this.xmlHttp = xmlHttp;
+          }
+        }, 500, false)
+      }
+
+      document.addEventListener("DOMContentLoaded", onReady);
+
+      //utility
+      function debounce(func, wait, immediate) {
+        var timeout;
+        return function () {
+          var context = this, args = arguments;
+          var later = function () {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+          };
+          var callNow = immediate && !timeout;
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+          if (callNow) func.apply(context, args);
+        };
+      }
+
+    })()
+  </script>
+
+  <style>
+    textarea:disabled {
+      background: lightgray;
+    }
+  </style>
+</head>
+<body>
+<div>
+  <b>Server Status:</b> <span id="statusText">Connecting</span>
+</div>
+
+<textarea rows="20" cols="50" id="theTextArea" style="margin-top: 20px;"></textarea>
+</body>
+</html>

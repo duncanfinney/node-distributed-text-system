@@ -1,0 +1,11 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="ES6ModulesDependencies" enabled="true" level="UNUSED ENTRY" enabled_by_default="true">
+      <scope name="EverythingButTests" level="WEAK WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="NodeModulesDependencies" enabled="true" level="UNUSED ENTRY" enabled_by_default="true">
+      <scope name="EverythingButTests" level="WEAK WARNING" enabled="true" />
+    </inspection_tool>
+  </profile>
+</component>

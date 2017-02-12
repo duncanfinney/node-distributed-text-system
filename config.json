@@ -1,0 +1,4 @@
+{
+  "initialTextLocation": "./initial-text.txt",
+  "mqttBrokerUrl": "mqtt://localhost"
+}
