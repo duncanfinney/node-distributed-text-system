@@ -2,59 +2,61 @@ const debug = require('../../lib/debug');
 describe('debug', () => {
 
   it('should log Sets', () => {
-    //Arrange
+    //arrange
     debug.output = log;
     const logger = debug.createLogger('test', 'red');
 
-    //Act
+    //act
     logger.log(new Set([1,2,3]));
 
-    //Assert
+    //assert
     function log(line) {
       assert.ok(line.includes('Set{[1,2,3]}'));
     }
   });
 
   it('should log Maps', () => {
-    //Arrange
+    //arrange
     debug.output = log;
     const logger = debug.createLogger('test', 'red');
 
-    //Act
+    //act
     const map = new Map();
     map.set('foo', 'bar');
     logger.log(map);
 
-    //Assert
+    //assert
     function log(line) {
       assert.equal(line.split('|')[2], 'Map{[["foo","bar"]]}');
     }
   });
 
   it('should handle null', () => {
+    //arrange
     debug.output = log;
     const logger = debug.createLogger('test', 'red');
 
-    //Act
+    //act
     logger.log(null);
 
-    //Assert
+    //assert
     function log(line) {
       assert.equal(line.split('|')[2], 'null');
     }
-  })
+  });
 
   it('should handle Arrays', () => {
+    //arrange
     debug.output = log;
     const logger = debug.createLogger('test', 'red');
 
-    //Act
+    //act
     logger.log([1,2]);
 
-    //Assert
+    //assert
     function log(line) {
       assert.equal(line.split('|')[2], '[1,2]');
     }
-  })
+  });
 
 });
