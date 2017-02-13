@@ -42,7 +42,6 @@ describe('Raft', () => {
     });
 
     it('1. should return false if term < currentTerm', async() => {
-
       //arrange
       const { node0 } = cluster;
       node0.state.term = 4;
@@ -122,6 +121,7 @@ describe('Raft', () => {
         from: 'node0',
         term: 5
       });
+
     });
 
   });
@@ -145,7 +145,7 @@ describe('Raft', () => {
       //assert
       assert.equal(node1.state.state, 'follower', 'node should become a follower');
 
-    })
+    });
 
     it('should set voteGranted based on reply', async() => {
       //arrange
@@ -164,16 +164,15 @@ describe('Raft', () => {
       //assert
       assert.equal(node1.state.voteGranted['test'], true);
 
-    })
+    });
 
     it('should become leader if we get a quorum of votes', async() => {
-
-      //Arrange
+      //arrange
       const { node1 } = cluster;
       node1.state.peers = ['node1', 'test'];
       node1._beginElection();
 
-      //Act
+      //act
       node1.onMessage({
         type: RaftCommands.RequestVoteReply,
         voteGranted: true,
@@ -181,19 +180,18 @@ describe('Raft', () => {
         from: 'test'
       });
 
-      //Assert
+      //assert
       assert.equal(node1.state.state, 'leader');
 
-    })
+    });
 
     it('should not become leader unless it has a quorum', async() => {
-
-      //Arrange
+      //arrange
       const { node1 } = cluster;
       node1.state.peers = ['node1', 'test', 'nonexistient', 'dead', 'more nodes', 'wontgetquorum'];
       node1._beginElection();
 
-      //Act
+      //act
       node1.onMessage({
         type: RaftCommands.RequestVoteReply,
         voteGranted: true,
@@ -201,10 +199,10 @@ describe('Raft', () => {
         from: 'test'
       });
 
-      //Assert
+      //assert
       assert.equal(node1.state.state, 'candidate');
 
-    })
+    });
 
   });
 
@@ -227,14 +225,13 @@ describe('Raft', () => {
       //assert
       assert.equal(node1.state.state, 'follower', 'node should become a follower');
 
-    })
+    });
 
     it('1. return false if term < currentTerm', async() => {
-
-      //Arrange
+      //arrange
       const { node1 } = cluster;
 
-      //Act
+      //act
       node1.onMessage({
         type: RaftCommands.AppendEntries,
         term: -1,
@@ -245,13 +242,14 @@ describe('Raft', () => {
         from: 'test'
       });
 
-      //Assert
+      //assert
       const message = await conn.getNextMessage(RaftCommands.AppendEntriesReply);
       assert.isFalse(message.success);
-    })
+
+    });
 
     it('2. Reply false if log doesn’t contain an entry at prevLogIndex whose term matches prevLogTerm (§5.3)', async() => {
-      //Arrange
+      //arrange
       const { node1 } = cluster;
       node1.state.term = 3;
       node1.state.log = [
@@ -261,7 +259,7 @@ describe('Raft', () => {
         { index: 3, term: 3 },
       ];
 
-      //Act
+      //act
       node1.onMessage({
         type: RaftCommands.AppendEntries,
         term: 4,
@@ -271,7 +269,7 @@ describe('Raft', () => {
         from: 'test'
       });
 
-      //Assert
+      //assert
       const message = await conn.getNextMessage('AppendEntriesReply');
       assert.deepEqual(message, {
         type: RaftCommands.AppendEntriesReply,
@@ -285,7 +283,7 @@ describe('Raft', () => {
     });
 
     it('3. If an existing entry conflicts with a new one (same index but different terms), delete the existing entry and all that follow it (§5.3)', async() => {
-      //Arrange
+      //arrange
       const { node1 } = cluster;
       node1.state.term = 3;
       node1.state.log = [
@@ -303,7 +301,7 @@ describe('Raft', () => {
         { index: 11, term: 3 },
       ];
 
-      //Act
+      //act
       node1.onMessage({
         type: RaftCommands.AppendEntries,
         term: 3,
@@ -316,7 +314,7 @@ describe('Raft', () => {
         from: 'test'
       });
 
-      //Assert
+      //assert
       const message = await conn.getNextMessage('AppendEntriesReply');
       assert.deepEqual(message, {
         type: RaftCommands.AppendEntriesReply,
@@ -333,12 +331,12 @@ describe('Raft', () => {
         { index: 2, term: 2 },
         { index: 3, term: 4 },
         { index: 4, term: 4 }
-      ])
+      ]);
 
-    })
+    });
 
     it('4. Append any new entries not already in the log', async() => {
-      //Arrange
+      //arrange
       const { node1 } = cluster;
       node1.state.term = 3;
       node1.state.log = [
@@ -348,7 +346,7 @@ describe('Raft', () => {
         { index: 3, term: 3 }
       ];
 
-      //Act
+      //act
       node1.onMessage({
         type: RaftCommands.AppendEntries,
         term: 3,
@@ -361,7 +359,7 @@ describe('Raft', () => {
         from: 'test'
       });
 
-      //Assert
+      //assert
       const message = await conn.getNextMessage('AppendEntriesReply');
       assert.deepEqual(message, {
         type: RaftCommands.AppendEntriesReply,
@@ -378,11 +376,11 @@ describe('Raft', () => {
         { index: 2, term: 2 },
         { index: 3, term: 4 },
         { index: 4, term: 4 }
-      ])
-    })
+      ]);
+    });
 
     it('5. If leaderCommit > commitIndex, set commitIndex = min(leaderCommit, index of last new entry)', async() => {
-      //Arrange
+      //arrange
       const { node1 } = cluster;
       node1.state.term = 3;
       node1.state.log = [
@@ -392,7 +390,7 @@ describe('Raft', () => {
         { index: 3, term: 3 }
       ];
 
-      //Act
+      //act
       node1.onMessage({
         type: RaftCommands.AppendEntries,
         term: 3,
@@ -406,7 +404,7 @@ describe('Raft', () => {
         from: 'test'
       });
 
-      //Assert
+      //assert
       const message = await conn.getNextMessage('AppendEntriesReply');
       assert.deepEqual(message, {
         type: RaftCommands.AppendEntriesReply,
@@ -423,8 +421,8 @@ describe('Raft', () => {
         { index: 2, term: 2 },
         { index: 3, term: 4 },
         { index: 4, term: 4 }
-      ])
-    })
+      ]);
+    });
 
   });
 
@@ -447,10 +445,10 @@ describe('Raft', () => {
       //assert
       assert.equal(node1.state.state, 'follower', 'node should become a follower');
 
-    })
+    });
 
     it('on success, update nextIndex and matchIndex for the cluster', async() => {
-      //Arrange
+      //arrange
       const { node1 } = cluster;
       node1.state.state = 'leader';
       node1.state.term = 3;
@@ -469,7 +467,7 @@ describe('Raft', () => {
         { index: 11, term: 3 },
       ];
 
-      //Act
+      //act
       node1.onMessage({
         type: RaftCommands.AppendEntriesReply,
         term: 3,
@@ -478,14 +476,14 @@ describe('Raft', () => {
         from: 'test'
       });
 
-      //Assert
+      //assert
       assert.deepEqual(node1.state.matchIndex, { test: 5 });
       assert.deepEqual(node1.state.nextIndex, { test: 6 });
 
     });
 
     it('on failure, decrement nextIndex and retry', async() => {
-      //Arrange
+      //arrange
       const { node1 } = cluster;
       node1.state.state = 'leader';
       node1.state.term = 3;
@@ -506,7 +504,7 @@ describe('Raft', () => {
       node1.state.matchIndex = { test: 5 };
       node1.state.nextIndex = { test: 11 };
 
-      //Act
+      //act
       node1.onMessage({
         type: RaftCommands.AppendEntriesReply,
         term: 3,
@@ -515,12 +513,13 @@ describe('Raft', () => {
         from: 'test'
       });
 
-      //Assert
+      //assert
       assert.deepEqual(node1.state.matchIndex, { test: 5 });
       assert.deepEqual(node1.state.nextIndex.test, 10);
     });
 
     it('if a quorum has committed, advance commitIndex', async() => {
+      //arrange
       const { node1 } = cluster;
       node1.state.state = 'leader';
       node1.state.term = 3;
@@ -547,7 +546,7 @@ describe('Raft', () => {
         node3: 0
       };
 
-      //Act
+      //act
       node1.onMessage({
         type: RaftCommands.AppendEntriesReply,
         term: 3,
@@ -556,25 +555,26 @@ describe('Raft', () => {
         from: 'test'
       });
 
-      //Assert
-      assert.equal(node1.state.commitIndex, 4, 'should move up commitindex');
+      //assert
+      assert.equal(node1.state.commitIndex, 4, 'should move up commitIndex');
+
     });
 
   });
 
   describe('#append', () => {
-    it('should forward RPCs to the leader', async() => {
 
-      //Arrange
+    it('should forward RPCs to the leader', async() => {
+      //arrange
       const { node0, node1, node2 } = cluster;
       await node1.dispose();
       await node2.dispose();
       node0.state.lastKnownLeaderId = 'test';
 
-      //Act
+      //act
       node0.append({ text: 'new data for the commit log' });
 
-      //Assert
+      //assert
       const message = await conn.getNextMessage(RaftCommands.AppendRPC);
       assert.deepEqual(message, {
         type: RaftCommands.AppendRPC,
@@ -584,6 +584,7 @@ describe('Raft', () => {
       })
 
     });
+
   });
 
 });
@@ -646,6 +647,6 @@ function getTestMqttClient() {
   return new Promise(resolve => {
     conn.client.on('connect', () => {
       resolve(conn);
-    })
-  })
+    });
+  });
 }
